@@ -9,3 +9,6 @@ phpstan.neon
 testbench.yaml
 vendor
 node_modules
+# Ignore Mac DS_Store files
+.DS_Store
+**/.DS_Store
