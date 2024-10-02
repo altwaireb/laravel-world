@@ -2,6 +2,7 @@
 
 // config for Altwaireb/World
 return [
+    'insert_activations_only' => false,
     'countries' => [
         'activation' => [
             'default' => true,

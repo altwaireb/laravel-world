@@ -88,6 +88,7 @@ You can specify the activation of countries through the country code ISO2 or ISO
 before processing the seed data in the config file. `config/world.php`
 ```php
 return [
+    'insert_activations_only' => false,
     'countries' => [
         'activation' => [
             'default' => true,
@@ -118,6 +119,30 @@ return [
     ],
 ];
 ```
+If you need to insert the countries is activation , this insert only two Countries `( Albania , Argentina )` with States and Cities.
+```php
+return [
+    'insert_activations_only' => true,
+    'countries' => [
+        'activation' => [
+            'default' => true,
+            'only' => [
+                'iso2' => ['AL','AR'],
+                'iso3' => [],
+            ],
+            'except' => [
+                'iso2' => [],
+                'iso3' => [],
+            ],
+        ],
+        'chunk_length' => 50,
+    ],
+
+    ...
+];
+```
+
+
 This means that only these two countries and the states and cities affiliated with them will be activated.
 + Note: If activation only `iso2` an `iso3` are empty, the column is_active take the `default` value in config file.
 + Note: If Country is active, all States and Cities are active.

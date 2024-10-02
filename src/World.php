@@ -3,6 +3,7 @@
 namespace Altwaireb\World;
 
 use Altwaireb\World\Exceptions\InvalidCodeException;
+use Altwaireb\World\Exceptions\IsoCodesIsEmptyException;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
@@ -13,6 +14,11 @@ use Illuminate\Support\Str;
 
 class World
 {
+    public static function IsInsertActivationsOnly(): bool
+    {
+        return Config::get('world.insert_activations_only', false);
+    }
+
     public static function isActivateCountries(): bool
     {
         return Config::get('world.countries.activation.default', true);
@@ -388,6 +394,19 @@ class World
     }
 
     /**
+     * @throws IsoCodesIsEmptyException
+     */
+    public static function ensureIsInsertActivationsHasIsoCodes(): void
+    {
+        if (self::IsInsertActivationsOnly() === true) {
+            if (! self::hasIsoCodeActivate()) {
+                throw IsoCodesIsEmptyException::isEmpty();
+            }
+        }
+
+    }
+
+    /**
      * @throws InvalidCodeException
      */
     public static function ensureIsoCodesIsValid(): void
@@ -472,6 +491,22 @@ class World
         }
 
         return $iso3;
+    }
+
+    public static function getIdsCountriesActive(): array
+    {
+        $idsIso2 = self::getIdsCountriesActiveByIso2();
+        $idsIso3 = self::getIdsCountriesActiveByIso3();
+        $ids = array_merge(
+            $idsIso2,
+            $idsIso3
+        );
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        return array_unique($ids);
     }
 
     /**
