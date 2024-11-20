@@ -119,7 +119,6 @@ return [
 ];
 ```
 
-If you need to insert the countries is activation , this insert only two Countries `( Albania , Argentina )` with States and Cities.
 If you need to insert only the activated countries, this will insert only two countries (Albania and Argentina) with their States and Cities.
 
 ```php
@@ -146,7 +145,6 @@ return [
 
 
 This means that only these two countries and the states and cities affiliated with them will be activated.
-This means that only these two countries and the states and cities affiliated with them will be activated.
 
 + Note: If both `iso2` and `iso3` are empty, the `is_active` column takes the default value from the config file.
 + Note: If a country is active, all its states and cities are active.
@@ -155,9 +153,7 @@ This means that only these two countries and the states and cities affiliated wi
 
 ## Usage
 
-you can get country by iso2 and iso3 or both.
 You can get a country by its ISO2 or ISO3 code, or both.
-
 If you want to get a country by ISO2, you can use the static function `getByIso2`.
 
 ```php
@@ -183,8 +179,7 @@ $bra->iso3; // BRA
 $bra->currency_symbol; // R$
 $bra->native; // Brasil
 ```
-also if you want to get country by code iso2 ro iso3 you can use.
-Also, if you want to get a country by either ISO2 or ISO3 code, you can use the following.
+And if you want to get a country by either ISO2 or ISO3 code, you can use the following.
 
 ```php
 use App\Models\Country;
@@ -199,7 +194,6 @@ $bra->native; // Portugal
 
 ### Scope
 
-you can use Scope to filter data is Active by use.
 You can use Scope to filter active data by using the following.
 
 ```php
