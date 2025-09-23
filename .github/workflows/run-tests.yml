@@ -58,11 +58,7 @@ jobs:
       - name: Install dependencies
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update
-          composer require --dev \
-            "orchestra/testbench:${{ matrix.testbench }}" \
-            "pestphp/pest:${{ matrix.pest }}" \
-            "pestphp/pest-plugin-laravel:${{ matrix.pest_plugin }}" \
-            --no-interaction --no-update
+          composer require --dev "orchestra/testbench:${{ matrix.testbench }}" "pestphp/pest:${{ matrix.pest }}" "pestphp/pest-plugin-laravel:${{ matrix.pest_plugin }}" --no-interaction --no-update
           composer update --${{ matrix.stability }} --prefer-dist --no-interaction
 
       - name: List Installed Dependencies
