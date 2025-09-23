@@ -23,11 +23,11 @@ jobs:
         include:
           - laravel: 12.*
             testbench: 10.*
-            pest: ^3.8
+            pest: ^3.8.2
             pest_plugin: ^3.2
           - laravel: 11.*
             testbench: 9.*
-            pest: ^3.8
+            pest: ^3.8.2
             pest_plugin: ^3.2
           - laravel: 10.*
             testbench: 8.*
