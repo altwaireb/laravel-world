@@ -33,6 +33,9 @@ jobs:
             testbench: 8.*
             pest: ^2.34
             pest_plugin: ^2.4
+        exclude:
+          - laravel: 12.*
+            php: 8.2
 
     name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
