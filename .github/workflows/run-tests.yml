@@ -18,9 +18,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         php: [8.3, 8.2]
-        laravel: [12.*, 11.*, 10.*]
+        laravel: [13.*, 12.*, 11.*, 10.*]
         stability: [prefer-lowest, prefer-stable]
         include:
+          - laravel: 13.*
+            testbench: 11.*
+            pest: ^4.0
+            pest_plugin: ^4.0
           - laravel: 12.*
             testbench: 10.*
             pest: ^3.8.2
@@ -34,6 +38,8 @@ jobs:
             pest: ^2.34.7
             pest_plugin: ^2.4
         exclude:
+          - laravel: 13.*
+            php: 8.2
           - laravel: 12.*
             php: 8.2
 
