@@ -3,6 +3,7 @@
 namespace Altwaireb\World\Database\Seeders;
 
 use Altwaireb\World\Exceptions\InvalidCodeException;
+use Altwaireb\World\Exceptions\IsoCodesIsEmptyException;
 use Altwaireb\World\Models\City;
 use Altwaireb\World\Models\Country;
 use Altwaireb\World\Models\State;
@@ -16,7 +17,7 @@ class BaseWorldSeeder extends Seeder
     ) {}
 
     /**
-     * @throws \Altwaireb\World\Exceptions\IsoCodesIsEmptyException
+     * @throws IsoCodesIsEmptyException
      */
     public function run(): void
     {
