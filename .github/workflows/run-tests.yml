@@ -13,29 +13,87 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
+
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        php: [8.3, 8.2]
-        laravel: [12.*, 11.*, 10.*]
-        stability: [prefer-lowest, prefer-stable]
         include:
-          - laravel: 12.*
+          # Laravel 13 - supported PHP range
+          - os: ubuntu-latest
+            php: 8.5
+            laravel: ^13.23.0
+            testbench: 11.*
+            pest: ^4.4.1
+            pest_plugin: ^4.1
+            stability: prefer-stable
+
+          - os: ubuntu-latest
+            php: 8.3
+            laravel: ^13.23.0
+            testbench: 11.*
+            pest: ^4.4.1
+            pest_plugin: ^4.1
+            stability: prefer-stable
+
+          - os: ubuntu-latest
+            php: 8.3
+            laravel: ^13.23.0
+            testbench: 11.*
+            pest: ^4.4.1
+            pest_plugin: ^4.1
+            stability: prefer-lowest
+
+          # Laravel 12
+          - os: ubuntu-latest
+            php: 8.3
+            laravel: 12.*
             testbench: 10.*
             pest: ^3.8.2
             pest_plugin: ^3.2
-          - laravel: 11.*
+            stability: prefer-stable
+
+          # Laravel 11
+          - os: ubuntu-latest
+            php: 8.3
+            laravel: 11.*
             testbench: 9.*
             pest: ^3.8.2
             pest_plugin: ^3.2
-          - laravel: 10.*
+            stability: prefer-stable
+
+          - os: ubuntu-latest
+            php: 8.2
+            laravel: 11.*
+            testbench: 9.*
+            pest: ^3.8.2
+            pest_plugin: ^3.2
+            stability: prefer-lowest
+
+          # Laravel 10
+          - os: ubuntu-latest
+            php: 8.3
+            laravel: 10.*
             testbench: 8.*
             pest: ^2.34.7
             pest_plugin: ^2.4
-        exclude:
-          - laravel: 12.*
+            stability: prefer-stable
+
+          - os: ubuntu-latest
             php: 8.2
+            laravel: 10.*
+            testbench: 8.*
+            pest: ^2.34.7
+            pest_plugin: ^2.4
+            stability: prefer-lowest
+
+          # Windows compatibility
+          - os: windows-latest
+            php: 8.3
+            laravel: ^13.23.0
+            testbench: 11.*
+            pest: ^4.4.1
+            pest_plugin: ^4.1
+            stability: prefer-stable
 
     name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
