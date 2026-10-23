@@ -3,6 +3,7 @@
 namespace Altwaireb\World\Tests;
 
 use Altwaireb\World\WorldServiceProvider;
+use Illuminate\Support\Facades\File;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
@@ -22,11 +23,34 @@ class TestCase extends Orchestra
 
     public function getEnvironmentSetUp($app): void
     {
-        config()->set('database.default', 'testing');
+        config()->set('database.default', 'sqlite');
+        config()->set('database.connections.sqlite.database', ':memory:');
+    }
 
-        /*
-        $migration = include __DIR__.'/../database/migrations/create_world_table.php.stub';
-        $migration->up();
-        */
+    protected function tearDown(): void
+    {
+        try {
+            $filesToDelete = [
+                app_path('Models/Country.php'),
+                app_path('Models/State.php'),
+                app_path('Models/City.php'),
+                database_path('seeders/WorldTableSeeder.php'),
+                config_path('world.php'),
+            ];
+
+            foreach ($filesToDelete as $file) {
+                if (File::exists($file)) {
+                    File::delete($file);
+                }
+            }
+
+            foreach (
+                glob(database_path('migrations/*_create_world_table.php') ?: []) as $migrationFile
+            ) {
+                File::delete($migrationFile);
+            }
+        } finally {
+            parent::tearDown();
+        }
     }
 }

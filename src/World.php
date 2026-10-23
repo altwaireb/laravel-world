@@ -2,18 +2,37 @@
 
 namespace Altwaireb\World;
 
+use Altwaireb\World\Data\WorldDataReader;
 use Altwaireb\World\Exceptions\InvalidCodeException;
 use Altwaireb\World\Exceptions\IsoCodesIsEmptyException;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class World
 {
+    private static ?array $countriesCache = null;
+
+    private static ?array $activeCountryIdsCache = null;
+
+    private static ?string $activeCountryIdsCacheKey = null;
+
+    private static ?array $exceptCountryIdsCache = null;
+
+    private static ?string $exceptCountryIdsCacheKey = null;
+
+    public static function clearCaches(): void
+    {
+        static::$countriesCache = null;
+        static::$activeCountryIdsCache = null;
+        static::$activeCountryIdsCacheKey = null;
+        static::$exceptCountryIdsCache = null;
+        static::$exceptCountryIdsCacheKey = null;
+    }
+
     public static function IsInsertActivationsOnly(): bool
     {
         return Config::get('world.insert_activations_only', false);
@@ -127,7 +146,7 @@ class World
 
     public static function isAllTablesEmpty(): bool
     {
-        return self::isCitiesTableEmpty() === true &&
+        return self::isCountriesTableEmpty() === true &&
             self::isStatesTableEmpty() === true &&
             self::isCitiesTableEmpty() === true;
     }
@@ -152,13 +171,13 @@ class World
         return Schema::hasTable($tableName);
     }
 
-    private static function isTableEmpty($tableName): bool
+    private static function isTableEmpty(string $tableName): bool
     {
-        if (! self::hasTable($tableName) && (DB::table($tableName)->count() > 0)) {
-            return false;
+        if (! self::hasTable($tableName)) {
+            return true;
         }
 
-        return true;
+        return DB::table($tableName)->doesntExist();
     }
 
     public static function isSeedersPublished(): bool
@@ -224,7 +243,8 @@ class World
 
     public static function getCountries(): array
     {
-        return self::getJsonFileAsArray('countries');
+        return self::$countriesCache ??=
+            self::getJsonFileAsArray('countries');
     }
 
     public static function getStates(): array
@@ -237,14 +257,9 @@ class World
         return self::getJsonFileAsArray('cities');
     }
 
-    private static function getJsonFileAsArray(string $fileName)
+    private static function getJsonFileAsArray(string $fileName): array
     {
-        $data = File::get(__DIR__."/../database/data/$fileName.json");
-        if (! $data) {
-            return [];
-        }
-
-        return json_decode($data);
+        return (new WorldDataReader)->all($fileName);
     }
 
     protected static function isIso2CountriesActive(string $iso2): bool
@@ -356,20 +371,28 @@ class World
 
     private static function getIdsCountriesExceptByIso2OrIso3(): array
     {
-        $ids = [];
+        $cacheKey = md5(serialize([
+            self::getIso2Except(),
+            self::getIso3Except(),
+        ]));
 
-        if (self::hasIso2Except()) {
-            $ids = array_merge($ids, self::getIdsCountriesExceptByIso2());
+        if (
+            self::$exceptCountryIdsCache !== null
+            && self::$exceptCountryIdsCacheKey === $cacheKey
+        ) {
+            return self::$exceptCountryIdsCache;
         }
 
-        if (self::hasIso3Except()) {
-            $ids = array_merge($ids, self::getIdsCountriesExceptByIso3());
-        }
-        if (! empty($ids)) {
-            return array_unique($ids);
-        }
+        $ids = array_merge(
+            self::getIdsCountriesExceptByIso2(),
+            self::getIdsCountriesExceptByIso3(),
+        );
 
-        return $ids;
+        self::$exceptCountryIdsCacheKey = $cacheKey;
+
+        return self::$exceptCountryIdsCache = array_values(
+            array_unique($ids),
+        );
     }
 
     private static function isIdCountryActive(int $countryId): bool
@@ -379,18 +402,28 @@ class World
 
     private static function getIdsCountriesActiveByIso2OrIso3(): array
     {
-        $idsIso2 = self::getIdsCountriesActiveByIso2();
-        $idsIso3 = self::getIdsCountriesActiveByIso3();
-        $ids = array_merge(
-            $idsIso2,
-            $idsIso3
-        );
+        $cacheKey = md5(serialize([
+            self::getIso2Activate(),
+            self::getIso3Activate(),
+        ]));
 
-        if (empty($ids)) {
-            return [];
+        if (
+            self::$activeCountryIdsCache !== null
+            && self::$activeCountryIdsCacheKey === $cacheKey
+        ) {
+            return self::$activeCountryIdsCache;
         }
 
-        return array_unique($ids);
+        $ids = array_merge(
+            self::getIdsCountriesActiveByIso2(),
+            self::getIdsCountriesActiveByIso3(),
+        );
+
+        self::$activeCountryIdsCacheKey = $cacheKey;
+
+        return self::$activeCountryIdsCache = array_values(
+            array_unique($ids),
+        );
     }
 
     /**

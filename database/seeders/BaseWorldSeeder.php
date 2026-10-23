@@ -2,6 +2,7 @@
 
 namespace Altwaireb\World\Database\Seeders;
 
+use Altwaireb\World\Data\WorldDataReader;
 use Altwaireb\World\Exceptions\InvalidCodeException;
 use Altwaireb\World\Exceptions\IsoCodesIsEmptyException;
 use Altwaireb\World\Models\City;
@@ -17,7 +18,7 @@ class BaseWorldSeeder extends Seeder
     ) {}
 
     /**
-     * @throws IsoCodesIsEmptyException
+     * @throws InvalidCodeException | IsoCodesIsEmptyException
      */
     public function run(): void
     {
@@ -27,8 +28,11 @@ class BaseWorldSeeder extends Seeder
             $this->createCountries();
             $this->createStates();
             $this->createCities();
-        } catch (InvalidCodeException $e) {
+        } catch (InvalidCodeException|IsoCodesIsEmptyException $e) {
             $this->command->error($e->getMessage());
+            throw $e;
+        } finally {
+            World::clearCaches();
         }
     }
 
@@ -94,32 +98,61 @@ class BaseWorldSeeder extends Seeder
 
     protected function createCities(): void
     {
-        $cities = $this->getAllCities();
-        $chunkLength = $this->serves->getCitiesChunkLength();
+        $reader = new WorldDataReader;
+        $chunkLength = max(1, $this->serves->getCitiesChunkLength());
+        $idsCountriesActive = $this->serves->getIdsCountriesActive();
+
+        $activeCountryIds = array_fill_keys(
+            $idsCountriesActive,
+            true,
+        );
+
+        $filterByActiveCountries = $this->serves->IsInsertActivationsOnly()
+            && ! empty($idsCountriesActive);
 
         $this->command->info('Starting Seed Cities Data ...');
-        $this->command->getOutput()->progressStart(count($cities));
 
-        foreach (array_chunk($cities, $chunkLength) as $chunk) {
-            foreach ($chunk as $city) {
-                if ($this->serves->IsInsertActivationsOnly() === true) {
-                    if ($this->serves->isCityActiveByCountryId(
-                        countryId: $city->country_id
-                    ) === true) {
-                        $this->createCity($city);
+        // First pass: count cities for an accurate progress bar.
+        $totalCities = 0;
 
-                    }
-                } else {
-                    $this->createCity($city);
-                }
-
-                $this->command->getOutput()->progressAdvance();
+        foreach ($reader->iterate('cities') as $city) {
+            if (
+                $filterByActiveCountries
+                && ! isset($activeCountryIds[$city->country_id])
+            ) {
+                continue;
             }
+
+            $totalCities++;
+        }
+
+        $this->command->getOutput()->progressStart($totalCities);
+
+        // Second pass: process cities in bounded batches.
+        $chunk = [];
+
+        foreach ($reader->iterate('cities') as $city) {
+            if (
+                $filterByActiveCountries
+                && ! isset($activeCountryIds[$city->country_id])
+            ) {
+                continue;
+            }
+
+            $chunk[] = $city;
+
+            if (count($chunk) === $chunkLength) {
+                $this->seedCitiesChunk($chunk);
+                $chunk = [];
+            }
+        }
+
+        if ($chunk !== []) {
+            $this->seedCitiesChunk($chunk);
         }
 
         $this->command->getOutput()->progressFinish();
         $this->command->info('Cities Data Seeded has successful');
-
     }
 
     private function getAllCountries(): array
@@ -249,5 +282,24 @@ class BaseWorldSeeder extends Seeder
                 countryId: $city->country_id
             ),
         ]);
+    }
+
+    private function seedCitiesChunk(array $cities): void
+    {
+        foreach ($cities as $city) {
+            if ($this->serves->IsInsertActivationsOnly() === true) {
+                if (
+                    $this->serves->isCityActiveByCountryId(
+                        countryId: $city->country_id,
+                    ) === true
+                ) {
+                    $this->createCity($city);
+                }
+            } else {
+                $this->createCity($city);
+            }
+
+            $this->command->getOutput()->progressAdvance();
+        }
     }
 }
