@@ -47,7 +47,7 @@ class SeederWorldCommand extends Command
                     '--path' => 'database/migrations/'.$this->serves->getMigrationFileName(migrationFileName: 'create_world_table.php'),
                 ]);
             } else {
-                $this->components->warn('counsel command.');
+                $this->components->warn('Seeding cancelled.');
 
                 return self::INVALID;
             }

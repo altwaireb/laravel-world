@@ -2,6 +2,24 @@
 
 All notable changes to `laravel-world` will be documented in this file.
 
+## v2.0.0 - 2026-10-23
+
+### What's Changed
+
+#### New Features
+
+- Added streaming JSON data reading using `halaxa/json-machine` to improve memory efficiency when processing large datasets.
+
+#### Compatibility
+
+- Added Laravel 13 compatibility, with CI testing starting from Laravel `13.38.0`.
+- Preserved compatibility with Laravel 10, 11, and 12.
+
+#### Testing
+
+- Added tests for streaming JSON data processing.
+- Verified compatibility across all nine GitHub Actions test jobs.
+
 ## Laravel 13 Support - 2026-09-06
 
 ### What's Changed
